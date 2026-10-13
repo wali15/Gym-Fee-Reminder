@@ -1,0 +1,24 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+  functions = "netlify/functions"
+
+[build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Routing (pages + /api/* App Router handlers) is handled by @netlify/plugin-nextjs.
+# Do NOT add static-SPA redirects like /* -> /index.html here; they shadow Next's
+# own routing and break SSR and API routes in production.
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/**"]
+
+# The check-due function declares its own schedule in code
+# (export const config = { schedule: '0 * * * *' }). It runs hourly and no-ops
+# unless the current hour matches the admin's configured reminder time, so the
+# in-app reminder-time setting takes effect. Do NOT also set a schedule here —
+# duplicating it across toml + code is ambiguous.
