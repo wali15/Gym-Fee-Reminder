@@ -105,12 +105,12 @@ export async function sendReminderEmail(
       const transporter = nodemailer.createTransport({
         host: config.smtpHost,
         port: config.smtpPort,
-        secure: config.smtpSecure, // true for 465, false for other ports
+        secure: config.smtpSecure ?? false, // true for 465, false for other ports
         auth: {
           user: config.smtpUsername,
           pass: config.smtpPassword,
         },
-      })
+      } as nodemailer.TransportOptions)
 
       await transporter.sendMail({
         from: `${config.fromName} <${config.fromAddress}>`,
@@ -195,12 +195,12 @@ export async function sendPaymentConfirmationEmail(
       const transporter = nodemailer.createTransport({
         host: config.smtpHost,
         port: config.smtpPort,
-        secure: config.smtpSecure, // true for 465, false for other ports
+        secure: config.smtpSecure ?? false, // true for 465, false for other ports
         auth: {
           user: config.smtpUsername,
           pass: config.smtpPassword,
         },
-      })
+      } as nodemailer.TransportOptions)
 
       await transporter.sendMail({
         from: `${config.fromName} <${config.fromAddress}>`,

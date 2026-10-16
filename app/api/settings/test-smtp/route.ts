@@ -3,7 +3,7 @@ import { errorResponse } from '@/lib/api'
 
 export const dynamic = 'force-dynamic'
 
-export function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { host, port, username, password, secure } = await request.json()
 
@@ -28,12 +28,10 @@ export function POST(request: NextRequest) {
     // We'll use the built-in net module to test the connection
     const { createConnection } = await import('net')
 
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
       const connection = createConnection({
         host: host,
         port: portNum,
-        // Note: For SMTP testing, we're just testing if we can connect
-        // Actual TLS/SSL negotiation would happen during SMTP handshake
       })
 
       let connected = false

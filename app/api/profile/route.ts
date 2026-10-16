@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { errorResponse } from '@/lib/api'
-import { getMemberByEmail, updateMember } from '@/lib/db'
+import { getUserByEmail, updateUser } from '@/lib/users'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,19 +9,19 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth()
     
-    // Get member by email from session
-    const member = await getMemberByEmail(session.email)
+    // Get user by email from session
+    const user = await getUserByEmail(session.email)
     
-    if (!member) {
-      return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
     
     return NextResponse.json({
       user: {
-        id: member.id,
-        name: member.name,
-        email: member.email,
-        role: member.role,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       }
     })
   } catch (error) {
@@ -41,20 +41,25 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    const user = await getUserByEmail(session.email)
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
     
-    // Update member
-    const updatedMember = await updateMember(session.email, { name, email })
+    // Update user profile
+    const updatedUser = await updateUser(user.id, { name, email })
     
-    if (!updatedMember) {
-      return NextResponse.json({ error: 'Failed to update member' }, { status: 500 })
+    if (!updatedUser) {
+      return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
     }
     
     return NextResponse.json({
       user: {
-        id: updatedMember.id,
-        name: updatedMember.name,
-        email: updatedMember.email,
-        role: updatedMember.role,
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
       }
     })
   } catch (error) {

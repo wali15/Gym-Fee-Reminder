@@ -48,7 +48,7 @@ export function MemberForm({ initialData, onSuccess }: MemberFormProps) {
       errors.name = 'Member name is required'
     }
 
-    if (!formData.fee_amount || parseFloat(formData.fee_amount) <= 0) {
+    if (!formData.fee_amount || parseFloat(String(formData.fee_amount)) <= 0) {
       errors.fee_amount = 'Please enter a valid fee amount'
     }
 

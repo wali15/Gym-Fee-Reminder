@@ -4,12 +4,14 @@ interface StatusBadgeProps {
   status: 'paid' | 'due' | 'overdue'
   variant?: 'default' | 'outline' | 'dot'
   size?: 'sm' | 'md' | 'lg'
+  className?: string
 }
 
 export function StatusBadge({
   status,
   variant = 'default',
-  size = 'md'
+  size = 'md',
+  className = ''
 }: StatusBadgeProps) {
   const getBadgeProps = (status: string) => {
     switch (status) {
@@ -62,7 +64,7 @@ export function StatusBadge({
 
   return (
     <span
-      className={`badge-premium inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 hover-lift ${sizeClasses} ${variantClasses} ${text}`}
+      className={`badge-premium inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 hover-lift ${sizeClasses} ${variantClasses} ${text} ${className}`}
     >
       {variant === 'dot' ? (
         <>
