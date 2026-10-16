@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { MemberForm } from '@/components/MemberForm'
 import { useRouter, useParams } from 'next/navigation'
 
@@ -21,11 +21,7 @@ export default function EditMemberPage() {
   const [member, setMember] = useState<Member | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchMember()
-  }, [id])
-
-  const fetchMember = async () => {
+  const fetchMember = useCallback(async () => {
     try {
       const response = await fetch(`/api/members/${id}`)
       if (response.status === 401) {
@@ -39,7 +35,11 @@ export default function EditMemberPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, router])
+
+  useEffect(() => {
+    fetchMember()
+  }, [fetchMember])
 
   const handleSuccess = () => {
     router.push('/dashboard')

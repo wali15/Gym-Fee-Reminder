@@ -30,6 +30,11 @@ export default function SettingsPage() {
   const [ssoGoogleSecret, setSsoGoogleSecret] = useState('')
   const [smtpPassword, setSmtpPassword] = useState('')
 
+  const [showResendKey, setShowResendKey] = useState(false)
+  const [showWhatsappToken, setShowWhatsappToken] = useState(false)
+  const [showSmtpPassword, setShowSmtpPassword] = useState(false)
+  const [showSsoSecret, setShowSsoSecret] = useState(false)
+
   useEffect(() => {
     ;(async () => {
       try {
@@ -204,9 +209,9 @@ export default function SettingsPage() {
       <main className="container-premium py-12">
         {toast && (
           <div className="fixed inset-0 pointer-events-none">
-            <div className="absolute top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-200 flex items-center gap-2 ${
+            <div className={`absolute top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-200 flex items-center gap-2 animate-fade-in animate-slide-up ${
               toast.type === 'success' ? 'bg-primary/90 backdrop-blur-sm border border-primary/20' : 'bg-destructive/90 backdrop-blur-sm border border-destructive/20'
-            }" animation="fade-in slide-up">
+            }`}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {toast.type === 'success' ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -387,7 +392,7 @@ export default function SettingsPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showResendKey ? 'text' : 'password'}
                     value={resendKey}
                     onChange={(e) => setResendKey(e.target.value)}
                     className={`input-premium w-full ${!settings.email_enabled ? 'opacity-50' : ''}`}
@@ -396,17 +401,18 @@ export default function SettingsPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowSetupPassword(!showSetupPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2"
+                    onClick={() => setShowResendKey(!showResendKey)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
                     aria-label="Toggle password visibility"
                   >
-                    {showSetupPassword ? (
+                    {showResendKey ? (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6z" />
                       </svg>
                     ) : (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     )}
                   </button>
@@ -463,7 +469,7 @@ export default function SettingsPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showWhatsappToken ? 'text' : 'password'}
                     value={whatsappToken}
                     onChange={(e) => setWhatsappToken(e.target.value)}
                     className={`input-premium w-full ${!settings.whatsapp_enabled ? 'opacity-50' : ''}`}
@@ -472,17 +478,18 @@ export default function SettingsPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowSetupPassword(!showSetupPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2"
+                    onClick={() => setShowWhatsappToken(!showWhatsappToken)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
                     aria-label="Toggle password visibility"
                   >
-                    {showSetupPassword ? (
+                    {showWhatsappToken ? (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6z" />
                       </svg>
                     ) : (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     )}
                   </button>
@@ -502,8 +509,8 @@ export default function SettingsPage() {
                 <label className="flex items-center gap-3 text-sm font-medium text-muted-foreground/80">
                   <input
                     type="checkbox"
-                    checked={settings.smtp_enabled}
-                    onChange={(e) => set('smtp_enabled', e.target.checked)}
+                    checked={settings.smtp_relay_enabled}
+                    onChange={(e) => set('smtp_relay_enabled', e.target.checked)}
                     className="h-4 w-4 rounded border-border/50 text-primary-600 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   <span>Enable SMTP relay</span>
@@ -564,26 +571,27 @@ export default function SettingsPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showSmtpPassword ? 'text' : 'password'}
                     value={smtpPassword}
                     onChange={(e) => setSmtpPassword(e.target.value)}
-                    className={`input-premium w-full ${!settings.smtp_enabled ? 'opacity-50' : ''}`}
+                    className={`input-premium w-full ${!settings.smtp_relay_enabled ? 'opacity-50' : ''}`}
                     placeholder={secretPlaceholder(secrets?.smtp_password)}
                     autoComplete="off"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowSetupPassword(!showSetupPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2"
+                    onClick={() => setShowSmtpPassword(!showSmtpPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
                     aria-label="Toggle password visibility"
                   >
-                    {showSetupPassword ? (
+                    {showSmtpPassword ? (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6z" />
                       </svg>
                     ) : (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     )}
                   </button>
@@ -617,7 +625,7 @@ export default function SettingsPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showSsoSecret ? 'text' : 'password'}
                     value={ssoGoogleSecret}
                     onChange={(e) => setSsoGoogleSecret(e.target.value)}
                     className={`input-premium w-full ${!settings.sso_google_client_id ? 'opacity-50' : ''}`}
@@ -626,17 +634,18 @@ export default function SettingsPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowSetupPassword(!showSetupPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2"
+                    onClick={() => setShowSsoSecret(!showSsoSecret)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
                     aria-label="Toggle password visibility"
                   >
-                    {showSetupPassword ? (
+                    {showSsoSecret ? (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6z" />
                       </svg>
                     ) : (
                       <svg className="h-4 w-4 text-muted-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A12.022 12.022 0 0112 15.75c0-1.624.226-3.179.648-4.562A5.988 5.988 0 0012 9c0-3.315-2.69-6-6-6S1 5.685 1 9a5.988 5.988 0 001.125 2.872c.422 1.383.648 2.938.648 4.562A12.022 12.022 0 0012 21c3.315 0 6-2.69 6-6s-2.69-6-6-6zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     )}
                   </button>

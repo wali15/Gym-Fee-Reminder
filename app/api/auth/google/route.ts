@@ -10,16 +10,10 @@ export async function GET(request: NextRequest) {
     const scope = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid'
     const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     
-    // Store state in cookie for CSRF protection
-    const cookieStore = await request.cookies()
-    cookieStore.set('oauth_state', state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 10, // 10 minutes
-    })
-    
+    if (!clientId) {
+      return NextResponse.json({ error: 'Google Client ID is missing' }, { status: 400 })
+    }
+
     const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
     googleAuthUrl.searchParams.set('client_id', clientId)
     googleAuthUrl.searchParams.set('redirect_uri', redirectUri)
@@ -28,8 +22,17 @@ export async function GET(request: NextRequest) {
     googleAuthUrl.searchParams.set('access_type', 'offline')
     googleAuthUrl.searchParams.set('prompt', 'consent')
     googleAuthUrl.searchParams.set('state', state)
+
+    const redirectRes = NextResponse.redirect(googleAuthUrl.toString())
+    redirectRes.cookies.set('oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 10, // 10 minutes
+    })
     
-    return NextResponse.redirect(googleAuthUrl.toString())
+    return redirectRes
   } catch (error) {
     return errorResponse(error, 'GET /api/auth/google')
   }

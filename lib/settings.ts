@@ -233,7 +233,7 @@ export function toEmailConfig(s: Settings): EmailConfig {
   const useSmtpRelay = s.smtp_relay_enabled && !!s.smtp_host && !!s.smtp_username && !!s.smtp_password
   
   return {
-    enabled: s.email_enabled && (s.resend_api_key || useSmtpRelay) && !!s.email_from_address,
+    enabled: Boolean(s.email_enabled && (s.resend_api_key || useSmtpRelay) && !!s.email_from_address),
     apiKey: s.resend_api_key,
     fromName: s.email_from_name || s.gym_name,
     fromAddress: s.email_from_address,

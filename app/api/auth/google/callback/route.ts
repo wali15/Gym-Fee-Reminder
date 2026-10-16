@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify state parameter to prevent CSRF
-    const cookieStore = await request.cookies()
+    const cookieStore = request.cookies
     const storedState = cookieStore.get('oauth_state')?.value
     if (!storedState || storedState !== state) {
       return NextResponse.redirect(`${request.nextUrl.origin}/profile?error=Invalid_state_parameter`)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { MemberTable } from '@/components/MemberTable'
 import { MemberForm } from '@/components/MemberForm'
@@ -34,12 +34,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({ total: 0, paid: 0, due: 0, overdue: 0 })
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
-  useEffect(() => {
-    fetchUser()
-    fetchMembers()
-  }, [])
-
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       const response = await fetch('/api/auth')
       if (!response.ok) return
@@ -48,9 +43,9 @@ export default function Dashboard() {
     } catch {
       // Header simply renders without role-gated links until this resolves.
     }
-  }
+  }, [])
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       const response = await fetch('/api/members')
       if (response.status === 401) {
@@ -66,7 +61,12 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    fetchUser()
+    fetchMembers()
+  }, [fetchUser, fetchMembers])
 
   const calculateStats = (members: Member[]) => {
     setStats({
@@ -165,9 +165,9 @@ export default function Dashboard() {
       <main className="container-premium py-12">
         {toast && (
           <div className="fixed inset-0 pointer-events-none">
-            <div className="absolute top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-200 flex items-center gap-2 ${
+            <div className={`absolute top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-200 flex items-center gap-2 animate-fade-in animate-slide-up ${
               toast.type === 'success' ? 'bg-primary/90 backdrop-blur-sm border border-primary/20' : 'bg-destructive/90 backdrop-blur-sm border border-destructive/20'
-            }" animation="fade-in slide-up">
+            }`}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {toast.type === 'success' ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

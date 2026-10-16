@@ -126,7 +126,7 @@
     @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md active:shadow-inner flex items-center justify-center gap-2 whitespace-nowrap;
   }
   .btn-premium-primary {
-    @apply bg-primary text-primary hover:bg-primary/90 active:bg-primary/80;
+    @apply bg-primary text-white hover:bg-primary/90 active:bg-primary/80;
   }
   .btn-premium-secondary {
     @apply bg-[hsl(var(--muted))] text-[hsl(var(--muted))] hover:bg-[hsl(var(--muted))]/80 active:bg-[hsl(var(--muted))]/70 border border-border/50;

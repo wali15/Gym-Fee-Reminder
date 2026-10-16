@@ -98,7 +98,7 @@ export function formatCsv(members: CsvMember[]): string {
 
   for (const member of members) {
     const row = headers.map(header => {
-      const value = member[header]
+      const value = member[header as keyof CsvMember]
       // Handle null/undefined values
       if (value === null || value === undefined) return ''
       // Escape quotes and wrap in quotes if contains comma, quote, or newline

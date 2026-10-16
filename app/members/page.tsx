@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Member } from '@/lib/db'
 
@@ -10,11 +10,7 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    fetchMembers()
-  }, [])
-
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       setLoading(true)
       const res = await fetch('/api/members')
@@ -35,7 +31,11 @@ export default function MembersPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    fetchMembers()
+  }, [fetchMembers])
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this member?')) {
