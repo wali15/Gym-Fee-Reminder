@@ -33,6 +33,7 @@ export const SCHEMA_STATEMENTS: string[] = [
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'standard',
+    google_id TEXT, -- Google OAuth ID (sub)
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,

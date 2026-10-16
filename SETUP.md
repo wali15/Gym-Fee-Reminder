@@ -184,6 +184,155 @@ npm run dev
 
 ---
 
+## Advanced Configuration
+
+### WhatsApp Reminder Setup
+
+To enable WhatsApp reminders via Meta Cloud API:
+
+1. **Create a Meta for Developers account** at [developers.facebook.com](https://developers.facebook.com/)
+2. **Set up WhatsApp Business API**:
+   - Create a new app or use an existing one
+   - Add "WhatsApp" product to your app
+   - Complete the business verification process
+3. **Get credentials**:
+   - **Access Token**: From WhatsApp API setup in your app dashboard
+   - **Phone Number ID**: Found in WhatsApp API settings (starts with `105...` or similar)
+4. **Create Message Templates** (required by WhatsApp):
+   - `fee_due_reminder` - for upcoming payment reminders
+   - `fee_overdue_reminder` - for overdue payment notifications  
+   - `payment_confirmation` - for successful payment alerts
+   - Templates must be approved by WhatsApp before use
+5. **Configure in App**:
+   - Go to Settings → WhatsApp
+   - Enable WhatsApp
+   - Enter your Access Token
+   - Enter your Phone Number ID
+   - Set template language (default: `en`)
+   - Verify template names match those approved by WhatsApp
+   - Save settings
+
+### Email Reminder Setup (via Resend)
+
+The app uses [Resend](https://resend.com) for email delivery by default:
+
+1. **Create a Resend account** at [resend.com](https://resend.com)
+2. **Verify your domain** (required for sending)
+3. **Get your API key** from Resend API keys page
+4. **Verify a sender email** (must be from your verified domain)
+5. **Configure in App**:
+   - Go to Settings → Email
+   - Enable Email
+   - Enter your From Name (e.g., "Pakistan Gym")
+   - Enter your From Address (verified sender email)
+   - Enter your Resend API key
+   - Save settings
+
+### Alternative: Gmail SMTP Setup
+
+To use Gmail's SMTP server instead of Resend (requires code modification):
+
+> ⚠️ **Note**: This requires modifying the email sending implementation. The current code uses Resend API. To switch to Gmail SMTP, you would need to:
+> 1. Replace the email sending logic in `lib/email.ts` (create this file if needed)
+> 2. Use `nodemailer` with Gmail SMTP transport
+> 3. Configure OAuth2 or App Password authentication
+
+#### Option 1: Gmail App Password (Less Secure)
+1. Enable 2-Factor Authentication on your Google account
+2. Generate an App Password for "Mail"
+3. Use your Gmail email as username and the App Password as password in nodemailer config
+
+#### Option 2: Gmail OAuth2 (More Secure - Requires Client ID/Secret)
+1. **Create Google Cloud Project**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project
+   - Enable "Gmail API" for your project
+2. **Configure OAuth Consent Screen**:
+   - Set user type to "External" (for org domain) or "Internal"
+   - Add required scopes: `https://mail.google.com/` or `https://www.googleapis.com/auth/gmail.send`
+3. **Create OAuth 2.0 Client ID**:
+   - Go to Credentials → Create Credentials → OAuth Client ID
+   - Application type: "Web application"
+   - Add authorized redirect URIs (your domain + `/api/auth/callback/google`)
+   - Copy the **Client ID** and **Client Secret**
+4. **Implement OAuth Flow**:
+   - Use a library like `next-auth` or `passport` to handle Google OAuth
+   - Store refresh token securely to obtain access tokens for SMTP auth
+5. **Configure nodemailer** with OAuth2:
+   ```javascript
+   const transporter = nodemailer.createTransport({
+     service: 'gmail',
+     auth: {
+       type: 'OAuth2',
+       user: 'your-email@yourdomain.com',
+       clientId: process.env.GMAIL_CLIENT_ID,
+       clientSecret: process.env.GMAIL_CLIENT_SECRET,
+       refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+       accessToken: // obtained periodically using refresh token
+     }
+   });
+   ```
+
+### SSO with Gmail (Google Login)
+
+To enable "Sign in with Google" instead of or in addition to email/password login:
+
+> ⚠️ **Note**: This requires adding authentication providers. Current auth is custom email/password only.
+
+1. **Follow Google Cloud Project steps above** (for OAuth2 credentials)
+2. **Add NextAuth.js** (recommended):
+   ```bash
+   npm install next-auth
+   ```
+3. **Create `/app/api/auth/[...nextauth]/route.ts`**:
+   ```typescript
+   import NextAuth from "next-auth"
+   import GoogleProvider from "next-auth/providers/google"
+   
+   export const authOptions = {
+     providers: [
+       GoogleProvider({
+         clientId: process.env.GOOGLE_CLIENT_ID,
+         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+       }),
+     ],
+     callbacks: {
+       async session({ session, token }) {
+         // Custom session handling
+         return session
+       }
+     }
+   }
+   
+   export default NextAuth(authOptions)
+   ```
+4. **Update login page** to show "Sign in with Google" button
+5. **Handle user creation** on first Google login (similar to existing admin setup)
+
+### Environment Variables for Advanced Features
+
+Add these to your hosting provider's environment variables (Netlify/Vercel):
+
+```
+# For WhatsApp
+WHATSAPP_TOKEN=your_whatsapp_access_token
+WHATSAPP_PHONE_ID=your_phone_number_id
+
+# For Email (Resend) - already documented
+RESEND_API_KEY=your_resend_api_key
+
+# For Gmail SMTP OAuth2 (if implemented)
+GMAIL_CLIENT_ID=your_google_client_id
+GMAIL_CLIENT_SECRET=your_google_client_secret
+GMAIL_REFRESH_TOKEN=your_gmail_refresh_token
+
+# For Google SSO (if implemented)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+---
+
 ## FAQ
 
 **Do I need to run `schema.sql` or `npm run db:push`?**

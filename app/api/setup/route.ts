@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Setup already completed' }, { status: 403 })
     }
 
-    const body = jsonResult.data
+    const body = jsonResult.data as { name?: string; email?: string; password?: string }
     const { name, email, password } = body
 
     if (!name || !email || !password) {

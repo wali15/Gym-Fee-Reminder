@@ -88,14 +88,14 @@ const stmt = db.prepare(`
 `)
 
 const sampleMembers = [
-  ['Rajesh Kumar', 'rajesh@email.com', '9876543210', 1500, fmt(tomorrow), 'due', null],
-  ['Priya Sharma', 'priya@email.com', '9876543211', 2000, fmt(yesterday), 'overdue', fmt(threeDaysAgo)],
-  ['Amit Patel', 'amit@email.com', '9876543212', 1800, fmt(nextWeek), 'due', null],
-  ['Sneha Singh', 'sneha@email.com', '9876543213', 2500, fmt(today), 'due', null],
-  ['Vikram Reddy', 'vikram@email.com', '9876543214', 3000, fmt(yesterday), 'paid', fmt(today)],
-  ['Anita Desai', 'anita@email.com', '9876543215', 1200, fmt(tomorrow), 'due', null],
-  ['Rohit Gupta', 'rohit@email.com', '9876543216', 2200, fmt(threeDaysAgo), 'overdue', fmt(yesterday)],
-  ['Kavya Nair', 'kavya@email.com', 'kavya@email.com', '9876543217', 1700, fmt(nextWeek), 'paid', null],
+  ['Ahmed Hassan', 'ahmed@email.com', '03001234567', 1500, fmt(tomorrow), 'due', null],
+  ['Fatima Ali', 'fatima@email.com', '03001234568', 2000, fmt(yesterday), 'overdue', fmt(threeDaysAgo)],
+  ['Mohammed Khan', 'mohammed@email.com', '03001234569', 1800, fmt(nextWeek), 'due', null],
+  ['Ayesha Malik', 'ayesha@email.com', '03001234570', 2500, fmt(today), 'due', null],
+  ['Bilal Ahmed', 'bilal@email.com', '03001234571', 3000, fmt(yesterday), 'paid', fmt(today)],
+  ['Zara Hussain', 'zara@email.com', '03001234572', 1200, fmt(tomorrow), 'due', null],
+  ['Omar Farooq', 'omar@email.com', '03001234573', 2200, fmt(threeDaysAgo), 'overdue', fmt(yesterday)],
+  ['Laraib Tariq', 'laraib@email.com', '03001234574', 1700, fmt(nextWeek), 'paid', null],
 ]
 
 for (const m of sampleMembers) {

@@ -16,7 +16,7 @@ export interface AuditLogEntry {
 /**
  * Log an audit entry for tracking changes
  *
- * @param entry - Audit log entry to create
+ * @param entry - Audit log entry to create (old_value and new_value are JSON strings when not null)
  */
 export async function logAuditEntry(entry: AuditLogEntry): Promise<void> {
   const client = getClient()
@@ -47,8 +47,8 @@ export async function logAuditEntry(entry: AuditLogEntry): Promise<void> {
  */
 export async function logSettingsChange(
   key: string,
-  oldValue: string | null,
-  newValue: string | null,
+  oldValue: string | number | boolean | null,
+  newValue: string | number | boolean | null,
   changedBy: string
 ): Promise<void> {
   await logAuditEntry({
@@ -57,8 +57,8 @@ export async function logSettingsChange(
     action: oldValue === null ? 'CREATE' : (newValue === null ? 'DELETE' : 'UPDATE'),
     changed_by: changedBy,
     changed_at: new Date().toISOString(),
-    old_value: oldValue,
-    new_value: newValue
+    old_value: oldValue !== null ? JSON.stringify(oldValue) : null,
+    new_value: newValue !== null ? JSON.stringify(newValue) : null
   })
 }
 

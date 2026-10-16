@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     return jsonResult.error
   }
 
-  const body = jsonResult.data
+  const body = jsonResult.data as { email?: string; password?: string; action?: string }
   const { email, password, action } = body
 
   if (action === 'logout') {

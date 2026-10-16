@@ -37,9 +37,10 @@ export async function POST(request: NextRequest) {
     let csvMembers
     try {
       csvMembers = parseCsv(csvContent)
-    } catch (parseError) {
+    } catch (parseError: unknown) {
+      const message = parseError instanceof Error ? parseError.message : String(parseError)
       return NextResponse.json(
-        { error: `Invalid CSV format: ${parseError.message}` },
+        { error: `Invalid CSV format: ${message}` },
         { status: 400 }
       )
     }
@@ -61,8 +62,9 @@ export async function POST(request: NextRequest) {
 
         const member = await createMember(memberData, session.email)
         importedMembers.push(member)
-      } catch (memberError) {
-        errors.push(`Row ${i + 2}: ${memberError.message}`) // +2 for header and 0-index
+      } catch (memberError: unknown) {
+        const message = memberError instanceof Error ? memberError.message : String(memberError)
+        errors.push(`Row ${i + 2}: ${message}`) // +2 for header and 0-index
       }
     }
 

@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import { SWRegister } from '@/components/SWRegister'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'Gym Fee Reminder - Membership Management',
@@ -19,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#16a34a" />
@@ -28,8 +31,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Gym Fee Reminder" />
       </head>
-      <body className="min-h-screen bg-gray-50">
-        {children}
+      <body className="min-h-screen antialiased">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         <SWRegister />
       </body>
     </html>

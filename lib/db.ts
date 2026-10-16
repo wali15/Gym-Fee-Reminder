@@ -73,6 +73,16 @@ let schemaReady: Promise<void> | null = null
  * first admin from env. Memoized; on failure the memo is cleared so a transient
  * DB outage doesn't permanently poison the cache.
  */
+async function migrateUsersTable(client: DbClient): Promise<void> {
+  // Check if google_id column exists in users table
+  const tableInfo = await client.execute({ sql: "PRAGMA table_info(users)" })
+  const columns = tableInfo.rows.map((row: any) => row.name)
+  if (!columns.includes('google_id')) {
+    // Add the column
+    await client.execute({ sql: "ALTER TABLE users ADD COLUMN google_id TEXT" })
+  }
+}
+
 export function ensureSchema(): Promise<void> {
   if (!schemaReady) {
     schemaReady = (async () => {
@@ -80,6 +90,8 @@ export function ensureSchema(): Promise<void> {
       for (const stmt of SCHEMA_STATEMENTS) {
         await client.execute(stmt)
       }
+      // Run migrations
+      await migrateUsersTable(client)
       await maybeSeedAdminFromEnv(client)
     })().catch((err) => {
       schemaReady = null
@@ -406,4 +418,14 @@ export async function updateOverdueStatus(): Promise<number> {
     args: [today],
   })
   return result.rowsAffected
+}
+
+export async function getMemberByEmail(email: string): Promise<Member | null> {
+  await ensureSchema()
+  const client = getClient()
+  const result = await client.execute({
+    sql: 'SELECT * FROM members WHERE email = ?',
+    args: [email],
+  })
+  return result.rows[0] ? mapRow(result.rows[0]) : null
 }

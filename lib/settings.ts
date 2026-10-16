@@ -25,6 +25,13 @@ export interface Settings {
   email_from_name: string
   email_from_address: string
   resend_api_key: string
+  // External SMTP Relay
+  smtp_relay_enabled: boolean
+  smtp_host: string
+  smtp_port: number
+  smtp_username: string
+  smtp_password: string
+  smtp_secure: boolean // true for 465, false for 587/25
   // WhatsApp (Meta Cloud API)
   whatsapp_enabled: boolean
   whatsapp_token: string
@@ -33,20 +40,32 @@ export interface Settings {
   whatsapp_template_due: string
   whatsapp_template_overdue: string
   whatsapp_template_payment: string
+  // SSO (Google)
+  sso_google_enabled: boolean
+  sso_google_client_id: string
+  sso_google_client_secret: string
 }
 
 export const SETTING_DEFAULTS: Settings = {
-  gym_name: 'FitLife Gym',
+  gym_name: 'Pakistan Gym',
   gym_contact_email: '',
-  currency: 'INR',
-  timezone: 'Asia/Kolkata',
+  currency: 'PKR',
+  timezone: 'Asia/Karachi',
   reminder_enabled: true,
   reminder_hour: 9,
   reminder_days_before: 3,
   email_enabled: false,
-  email_from_name: 'FitLife Gym',
+  email_from_name: 'Pakistan Gym',
   email_from_address: '',
   resend_api_key: '',
+  // External SMTP Relay
+  smtp_relay_enabled: false,
+  smtp_host: '',
+  smtp_port: 587,
+  smtp_username: '',
+  smtp_password: '',
+  smtp_secure: false,
+  // WhatsApp (Meta Cloud API)
   whatsapp_enabled: false,
   whatsapp_token: '',
   whatsapp_phone_id: '',
@@ -54,6 +73,10 @@ export const SETTING_DEFAULTS: Settings = {
   whatsapp_template_due: 'fee_due_reminder',
   whatsapp_template_overdue: 'fee_overdue_reminder',
   whatsapp_template_payment: 'payment_confirmation',
+  // SSO (Google)
+  sso_google_enabled: false,
+  sso_google_client_id: '',
+  sso_google_client_secret: '',
 }
 
 type Kind = 'string' | 'number' | 'boolean'
@@ -70,6 +93,14 @@ const KINDS: Record<SettingKey, Kind> = {
   email_from_name: 'string',
   email_from_address: 'string',
   resend_api_key: 'string',
+  // External SMTP Relay
+  smtp_relay_enabled: 'boolean',
+  smtp_host: 'string',
+  smtp_port: 'number',
+  smtp_username: 'string',
+  smtp_password: 'string',
+  smtp_secure: 'boolean',
+  // WhatsApp (Meta Cloud API)
   whatsapp_enabled: 'boolean',
   whatsapp_token: 'string',
   whatsapp_phone_id: 'string',
@@ -77,10 +108,18 @@ const KINDS: Record<SettingKey, Kind> = {
   whatsapp_template_due: 'string',
   whatsapp_template_overdue: 'string',
   whatsapp_template_payment: 'string',
+  // SSO (Google)
+  sso_google_enabled: 'boolean',
+  sso_google_client_id: 'string',
+  sso_google_client_secret: 'string',
 }
 
 /** Secret settings never sent to the client in cleartext. */
-export const SECRET_SETTING_KEYS: SettingKey[] = ['resend_api_key', 'whatsapp_token']
+export const SECRET_SETTING_KEYS: SettingKey[] = [
+  'resend_api_key',
+  'smtp_password',
+  'sso_google_client_secret',
+]
 
 /** Env vars used as a fallback ONLY when the DB value is empty/unset. */
 function envFallback(key: SettingKey): string | undefined {
@@ -93,6 +132,18 @@ function envFallback(key: SettingKey): string | undefined {
       return process.env.WHATSAPP_PHONE_ID
     case 'gym_contact_email':
       return process.env.ADMIN_EMAIL
+    // SSO (Google)
+    case 'sso_google_client_id':
+      return process.env.GOOGLE_CLIENT_ID
+    case 'sso_google_client_secret':
+      return process.env.GOOGLE_CLIENT_SECRET
+    // External SMTP Relay
+    case 'smtp_host':
+      return process.env.SMTP_HOST
+    case 'smtp_username':
+      return process.env.SMTP_USERNAME
+    case 'smtp_password':
+      return process.env.SMTP_PASSWORD
     default:
       return undefined
   }
@@ -126,7 +177,7 @@ export function parseSettings(rows: SettingRow[]): Settings {
 
   for (const key of Object.keys(SETTING_DEFAULTS) as SettingKey[]) {
     const raw = map.get(key)
-    if (raw !== undefined && raw !== null && raw !== '') {
+    if (raw !== undefined && raw !== null) {
       assign[key] = coerce(key, raw)
     } else {
       const env = envFallback(key)
@@ -162,17 +213,27 @@ export interface EmailConfig {
   currency: string
   appUrl: string
   contactEmail: string
+  // External SMTP config
+  smtpHost: string | null
+  smtpPort: number | null
+  smtpUsername: string | null
+  smtpPassword: string | null
+  smtpSecure: boolean | null
 }
 
 /**
- * Convert Settings to EmailConfig for Resend email service.
+ * Convert Settings to EmailConfig for email service.
+ * Supports both Resend and External SMTP Relay.
  *
  * @param s - Settings object
  * @returns EmailConfig object for email service configuration
  */
 export function toEmailConfig(s: Settings): EmailConfig {
+  // Determine which email service to use
+  const useSmtpRelay = s.smtp_relay_enabled && !!s.smtp_host && !!s.smtp_username && !!s.smtp_password
+  
   return {
-    enabled: s.email_enabled && !!s.resend_api_key && !!s.email_from_address,
+    enabled: s.email_enabled && (s.resend_api_key || useSmtpRelay) && !!s.email_from_address,
     apiKey: s.resend_api_key,
     fromName: s.email_from_name || s.gym_name,
     fromAddress: s.email_from_address,
@@ -180,6 +241,12 @@ export function toEmailConfig(s: Settings): EmailConfig {
     currency: s.currency,
     appUrl: process.env.NEXT_PUBLIC_APP_URL || '',
     contactEmail: s.gym_contact_email,
+    // External SMTP config
+    smtpHost: useSmtpRelay ? s.smtp_host : null,
+    smtpPort: useSmtpRelay ? s.smtp_port : null,
+    smtpUsername: useSmtpRelay ? s.smtp_username : null,
+    smtpPassword: useSmtpRelay ? s.smtp_password : null,
+    smtpSecure: useSmtpRelay ? s.smtp_secure : null,
   }
 }
 
@@ -238,17 +305,23 @@ export function toReminderConfig(s: Settings): ReminderConfig {
 // ---- Formatting / timezone helpers (Intl-based, no deps) --------------------
 
 /**
- * Format a number as currency string using Intl.NumberFormat.
+ * Format a number as currency string.
+ * For INR and PKR, uses "Rs" prefix instead of currency symbols.
  *
  * @param amount - The amount to format
- * @param currency - The currency code (default: 'INR')
+ * @param currency - The currency code (default: 'PKR')
  * @returns Formatted currency string
  *
  * @example
  *   formatCurrency(1500, 'USD') // "$1,500.00"
- *   formatCurrency(2500) // "₹2,500.00"
+ *   formatCurrency(2500) // "Rs 2,500.00"
  */
-export function formatCurrency(amount: number, currency = 'INR'): string {
+export function formatCurrency(amount: number, currency = 'PKR'): string {
+  // Special case for INR and PKR to use "Rs." instead of currency symbols
+  if (currency === 'INR' || currency === 'PKR') {
+    return `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+  }
+
   try {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(amount)
   } catch {

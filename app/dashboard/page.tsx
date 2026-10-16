@@ -87,7 +87,7 @@ export default function Dashboard() {
       const response = await fetch(`/api/remind/${id}`, { method: 'POST' })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
-      
+
       await fetchMembers()
       showToast('Reminder sent successfully!', 'success')
     } catch (error) {
@@ -97,14 +97,12 @@ export default function Dashboard() {
 
   const handleMarkPaid = async (id: number) => {
     try {
-      const response = await fetch(`/api/members/${id}`, {
+      const response = await fetch(`/api/members?id=${id}&action=paid`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'mark-paid' }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
-      
+
       await fetchMembers()
       showToast('Member marked as paid!', 'success')
     } catch (error) {
@@ -117,7 +115,7 @@ export default function Dashboard() {
       const response = await fetch(`/api/members/${id}`, { method: 'DELETE' })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
-      
+
       await fetchMembers()
       showToast('Member deleted successfully!', 'success')
     } catch (error) {
@@ -144,99 +142,128 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-loading-bar w-56 h-2 bg-primary/20 rounded-full overflow-hidden">
+          <div className="h-full w-0 bg-primary transition-all duration-2000 ease-in-out" style={{ width: '100%' }}></div>
+        </div>
+        <p className="mt-4 text-sm text-muted-foreground/80">Loading dashboard...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <AppHeader user={user}>
         <button
           onClick={handleAddNew}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+          className="btn-premium btn-premium-accent hover-lift"
         >
           + Add Member
         </button>
       </AppHeader>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="container-premium py-12">
         {toast && (
-          <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg text-white transition-all ${
-            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
-          }`}>
-            {toast.message}
+          <div className="fixed inset-0 pointer-events-none">
+            <div className="absolute top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white transition-all duration-200 flex items-center gap-2 ${
+              toast.type === 'success' ? 'bg-primary/90 backdrop-blur-sm border border-primary/20' : 'bg-destructive/90 backdrop-blur-sm border border-destructive/20'
+            }" animation="fade-in slide-up">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {toast.type === 'success' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                )}
+              </svg>
+              <span>{toast.message}</span>
+            </div>
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <p className="text-sm font-medium text-gray-500">Total Members</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{stats.total}</p>
+          <div className="card-premium hover-lift">
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground/80">Total Members</p>
+              <p className="text-3xl font-bold text-foreground">{stats.total}</p>
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <p className="text-sm font-medium text-gray-500">Paid</p>
-            <p className="mt-2 text-3xl font-bold text-green-600">{stats.paid}</p>
+          <div className="card-premium hover-lift">
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground/80">Paid</p>
+              <p className="text-3xl font-bold text-primary-foreground">{stats.paid}</p>
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <p className="text-sm font-medium text-gray-500">Due Soon</p>
-            <p className="mt-2 text-3xl font-bold text-amber-600">{stats.due}</p>
+          <div className="card-premium hover-lift">
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground/80">Due Soon</p>
+              <p className="text-3xl font-bold text-accent-foreground">{stats.due}</p>
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <p className="text-sm font-medium text-gray-500">Overdue</p>
-            <p className="mt-2 text-3xl font-bold text-red-600">{stats.overdue}</p>
+          <div className="card-premium hover-lift">
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground/80">Overdue</p>
+              <p className="text-3xl font-bold text-destructive-foreground">{stats.overdue}</p>
+            </div>
           </div>
         </div>
 
         {showForm ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {editingMember ? 'Edit Member' : 'Add New Member'}
-              </h2>
-              <button
-                onClick={() => { setShowForm(false); setEditingMember(null); }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <MemberForm 
-                initialData={editingMember || undefined} 
-                onSuccess={handleFormSuccess}
-              />
+          <div className="card-section-lg hover-lift">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-title-md font-semibold text-foreground">
+                  {editingMember ? 'Edit Member' : 'Add New Member'}
+                </h2>
+                <button
+                  onClick={() => { setShowForm(false); setEditingMember(null); }}
+                  className="text-muted-foreground/60 hover:text-muted-foreground hover-lift transition-all duration-200"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div>
+                <MemberForm
+                  initialData={editingMember || undefined}
+                  onSuccess={handleFormSuccess}
+                />
+              </div>
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Members</h2>
-            </div>
-            <div className="p-6">
-              <MemberTable
-                members={members}
-                onRemind={handleRemind}
-                onMarkPaid={handleMarkPaid}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                canDelete={user?.role === 'admin'}
-              />
+          <div className="card-section-lg hover-lift">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-title-md font-semibold text-foreground">Members</h2>
+                {members.length > 0 && (
+                  <span className="text-sm text-muted-foreground/60">
+                    {members.length} member{members.length !== 1 ? 's' : ''} • Last updated: {new Date().toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
+              <div>
+                <MemberTable
+                  members={members}
+                  onRemind={handleRemind}
+                  onMarkPaid={handleMarkPaid}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}
+                  canDelete={user?.role === 'admin'}
+                />
+              </div>
             </div>
           </div>
         )}
 
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-10 text-center text-sm text-muted-foreground/60">
           <p>Gym Fee Reminder System • Automated Email & WhatsApp reminders</p>
         </div>
       </main>
 
       {showForm && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur z-40"
           onClick={() => { setShowForm(false); setEditingMember(null); }}
         />
       )}

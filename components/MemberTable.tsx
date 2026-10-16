@@ -31,22 +31,19 @@ export function MemberTable({ members, onRemind, onMarkPaid, onDelete, onEdit, c
   const getRowClass = (status: string) => {
     switch (status) {
       case 'overdue':
-        return 'bg-red-50 border-l-4 border-red-500'
+        return 'border-l-4 border-destructive/50 bg-destructive/5'
       case 'due':
-        return 'bg-amber-50 border-l-4 border-amber-500'
+        return 'border-l-4 border-accent/50 bg-accent/5'
       case 'paid':
-        return 'bg-green-50 border-l-4 border-green-500'
+        return 'border-l-4 border-primary/50 bg-primary/5'
       default:
         return ''
     }
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount)
+    // For PKR, use "Rs." prefix instead of currency symbol
+    return `Rs. ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
   }
 
   const formatDate = (dateStr: string) => {
@@ -87,79 +84,87 @@ export function MemberTable({ members, onRemind, onMarkPaid, onDelete, onEdit, c
 
   if (members.length === 0) {
     return (
-      <div className="text-center py-12">
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No members found</h3>
-        <p className="mt-1 text-sm text-gray-500">Get started by adding a new member.</p>
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="mb-6">
+          <svg className="h-14 w-14 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <h3 className="mb-2 text-title-sm font-semibold text-foreground">No members found</h3>
+        <p className="text-muted-foreground/80 text-center max-w-md">
+          Get started by adding your first member to the gym.
+        </p>
       </div>
     )
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="table-premium">
+        <thead>
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Reminder</th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <th className="w-[30%]">Member</th>
+            <th className="w-[20%]">Contact</th>
+            <th className="w-[15%]">Fee</th>
+            <th className="w-[15%]">Due Date</th>
+            <th className="w-[10%]">Status</th>
+            <th className="w-[10%]">Last Reminder</th>
+            <th className="w-[15%]">Actions</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="divide-y divide-border/50">
           {members.map((member) => (
-            <tr key={member.id} className={`${getRowClass(member.status)} hover:bg-gray-50 transition-colors`}>
-              <td className="px-4 py-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                    <span className="text-primary-700 font-medium">
+            <tr
+              key={member.id}
+              className={`${getRowClass(member.status)} hover:bg-muted/5 transition-colors duration-200 hover-lift`}
+            >
+              <td className="table-premium py-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/50">
+                    <span className="text-primary-foreground font-medium">
                       {member.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">{member.name}</p>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{member.name}</p>
+                    <p className="text-xs text-muted-foreground/60">{member.email?.split('@')[0] ?? ''}</p>
                   </div>
                 </div>
               </td>
-              <td className="px-4 py-4">
-                <div className="text-sm text-gray-900 space-y-1">
+              <td className="table-premium py-4">
+                <div className="text-sm text-foreground space-y-2">
                   {member.email && (
-                    <div className="flex items-center gap-1 text-gray-600">
+                    <div className="flex items-center gap-2 text-muted-foreground/80">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z" />
                       </svg>
-                      <span>{member.email}</span>
+                      <span className="whitespace-nowrap">{member.email}</span>
                     </div>
                   )}
                   {member.phone && (
-                    <div className="flex items-center gap-1 text-gray-600">
+                    <div className="flex items-center gap-2 text-muted-foreground/80">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
-                      <span>{member.phone}</span>
+                      <span className="whitespace-nowrap">{member.phone}</span>
                     </div>
                   )}
                   {!member.email && !member.phone && (
-                    <span className="text-gray-400">No contact info</span>
+                    <span className="text-muted-foreground/50">No contact info</span>
                   )}
                 </div>
               </td>
-              <td className="px-4 py-4">
-                <span className="text-sm font-semibold text-gray-900">{formatCurrency(member.fee_amount)}</span>
+              <td className="table-premium py-4">
+                <span className="text-base font-semibold text-foreground">{formatCurrency(member.fee_amount)}</span>
               </td>
-              <td className="px-4 py-4">
-                <span className="text-sm text-gray-900">{formatDate(member.due_date)}</span>
+              <td className="table-premium py-4">
+                <span className="text-sm text-foreground">{formatDate(member.due_date)}</span>
               </td>
-              <td className="px-4 py-4">
-                <StatusBadge status={member.status} />
+              <td className="table-premium py-4">
+                <StatusBadge status={member.status} className="badge-premium-status" />
               </td>
-              <td className="px-4 py-4">
-                <span className="text-sm text-gray-500">
+              <td className="table-premium py-4">
+                <span className="text-sm text-muted-foreground/60">
                   {member.last_reminder_sent
                     ? new Date(member.last_reminder_sent).toLocaleDateString('en-IN', {
                         day: 'numeric',
@@ -170,36 +175,39 @@ export function MemberTable({ members, onRemind, onMarkPaid, onDelete, onEdit, c
                     : 'Never'}
                 </span>
               </td>
-              <td className="px-4 py-4">
-                <div className="flex items-center justify-end gap-2">
+              <td className="table-premium py-4">
+                <div className="flex items-center justify-end gap-3">
                   <button
                     onClick={() => handleRemind(member.id)}
                     disabled={remindingId === member.id || member.status === 'paid'}
-                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2.5 text-primary hover:bg-primary/5 active:bg-primary/10 rounded-lg transition-all duration-200 hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Send Reminder"
+                    aria-label="Send reminder"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z" />
                     </svg>
                   </button>
-                  
+
                   {member.status !== 'paid' && (
                     <button
                       onClick={() => handleMarkPaid(member.id)}
                       disabled={markingPaidId === member.id}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2.5 text-success hover:bg-success/5 active:bg-success/10 rounded-lg transition-all duration-200 hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Mark as Paid"
+                      aria-label="Mark as paid"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </button>
                   )}
-                  
+
                   <button
                     onClick={() => onEdit(member)}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2.5 text-muted-foreground/80 hover:bg-muted/5 hover:text-muted-foreground rounded-lg transition-all duration-200 hover-lift"
                     title="Edit"
+                    aria-label="Edit member"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -210,8 +218,9 @@ export function MemberTable({ members, onRemind, onMarkPaid, onDelete, onEdit, c
                     <button
                       onClick={() => handleDelete(member.id)}
                       disabled={deletingId === member.id}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2.5 text-destructive hover:bg-destructive/5 active:bg-destructive/10 rounded-lg transition-all duration-200 hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Delete"
+                      aria-label="Delete member"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

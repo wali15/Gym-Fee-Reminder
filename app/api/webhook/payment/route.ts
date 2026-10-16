@@ -4,6 +4,7 @@ import { markMemberPaid, getMember, getSettingsRows } from '@/lib/db'
 import { sendPaymentConfirmationEmail } from '@/lib/email'
 import { sendWhatsAppPaymentConfirmation } from '@/lib/whatsapp'
 import { parseSettings, toEmailConfig, toWhatsAppConfig } from '@/lib/settings'
+import { errorResponse } from '@/lib/api'
 import crypto from 'crypto'
 
 // Reads request headers/signature and DB: always run per-request.

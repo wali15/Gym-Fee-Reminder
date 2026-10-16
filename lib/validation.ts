@@ -182,3 +182,19 @@ export function isValidLanguageCode(lang: string): boolean {
 export function isNonEmptyString(value: unknown): boolean {
   return typeof value === 'string' && value.trim() !== '';
 }
+/**
+ * Validates that a port number is in the valid range (1-65535).
+ *
+ * @param port - The port number to validate
+ * @returns true if the port is valid, false otherwise
+ *
+ * @example
+ *   isValidPort(80) // true
+ *   isValidPort(65535) // true
+ *   isValidPort(0) // false
+ *   isValidPort(65536) // false
+ */
+export function isValidPort(port: unknown): boolean {
+  if (typeof port !== 'number' || !isFinite(port)) return false;
+  return Number.isInteger(port) && port >= 1 && port <= 65535;
+}

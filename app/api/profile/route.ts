@@ -1,23 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSession, requireAuth, verifyPassword } from '@/lib/auth'
-import {
-  emailExists,
-  getUserById,
-  getUserWithHashById,
-  updatePassword,
-  updateUser,
-} from '@/lib/users'
+import { requireAuth } from '@/lib/auth'
 import { errorResponse } from '@/lib/api'
+import { getMemberByEmail, updateMember } from '@/lib/db'
 
-// Auth/DB-backed: always run per-request (reads the session cookie).
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await requireAuth()
-    const user = await getUserById(Number(session.sub))
-    if (!user) return errorResponse(new Error('User not found'), 'GET /api/profile')
-    return NextResponse.json({ user })
+    
+    // Get member by email from session
+    const member = await getMemberByEmail(session.email)
+    
+    if (!member) {
+      return NextResponse.json({ error: 'Member not found' }, { status: 404 })
+    }
+    
+    return NextResponse.json({
+      user: {
+        id: member.id,
+        name: member.name,
+        email: member.email,
+        role: member.role,
+      }
+    })
   } catch (error) {
     return errorResponse(error, 'GET /api/profile')
   }
@@ -26,52 +32,31 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const session = await requireAuth()
-    const id = Number(session.sub)
-    const current = await getUserWithHashById(id)
-    if (!current) return errorResponse(new Error('User not found'), 'PUT /api/profile')
-
-    const { name, email, currentPassword, newPassword } = await request.json()
-
-    const emailStr = email !== undefined ? String(email).trim() : undefined
-    if (emailStr !== undefined) {
-      if (!emailStr) return errorResponse(new Error('Email cannot be empty'), 'PUT /api/profile')
-      if (await emailExists(emailStr, id)) {
-        return errorResponse(new Error('That email is already in use'), 'PUT /api/profile')
+    const jsonData = await request.json()
+    const { name, email } = jsonData
+    
+    if (!name || !email) {
+      return NextResponse.json(
+        { error: 'Name and email are required' },
+        { status: 400 }
+      )
+    }
+    
+    // Update member
+    const updatedMember = await updateMember(session.email, { name, email })
+    
+    if (!updatedMember) {
+      return NextResponse.json({ error: 'Failed to update member' }, { status: 500 })
+    }
+    
+    return NextResponse.json({
+      user: {
+        id: updatedMember.id,
+        name: updatedMember.name,
+        email: updatedMember.email,
+        role: updatedMember.role,
       }
-    }
-
-    // Password change requires the current password.
-    if (newPassword) {
-      if (String(newPassword).length < 8) {
-        return errorResponse(new Error('New password must be at least 8 characters'), 'PUT /api/profile')
-      }
-      const ok = await verifyPassword(String(currentPassword || ''), current.password_hash)
-      if (!ok) {
-        return errorResponse(new Error('Current password is incorrect'), 'PUT /api/profile')
-      }
-      await updatePassword(id, String(newPassword))
-    }
-
-    if (name !== undefined || emailStr !== undefined) {
-      await updateUser(id, {
-        name: name !== undefined ? String(name) : undefined,
-        email: emailStr,
-      })
-    }
-
-    // Re-read a clean (hash-free) user for the session + response.
-    const updated = await getUserById(id)
-    if (updated) {
-      // Re-issue the session so the cookie reflects the new name/email.
-      await createSession({
-        id: updated.id,
-        email: updated.email,
-        role: updated.role,
-        name: updated.name,
-      })
-    }
-
-    return NextResponse.json({ success: true, user: updated })
+    })
   } catch (error) {
     return errorResponse(error, 'PUT /api/profile')
   }

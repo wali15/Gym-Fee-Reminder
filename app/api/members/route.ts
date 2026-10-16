@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMembers, createMember, MemberInput } from '@/lib/db'
+import { getMembers, createMember, markMemberPaid, MemberInput } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { errorResponse } from '@/lib/api'
 import { isValidEmail, isValidPhoneNumber, isPositiveNumber, isValidDate } from '@/lib/validation'
@@ -85,5 +85,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ member }, { status: 201 })
   } catch (error) {
     return errorResponse(error, 'POST /api/members')
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await requireAuth() // Get session for audit logging
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    const action = searchParams.get('action')
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Member ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const memberId = parseInt(id, 10)
+    if (isNaN(memberId)) {
+      return NextResponse.json(
+        { error: 'Invalid member ID' },
+        { status: 400 }
+      )
+    }
+
+    if (action === 'paid') {
+      const member = await markMemberPaid(memberId, session.email)
+      if (!member) {
+        return NextResponse.json(
+          { error: 'Member not found' },
+          { status: 404 }
+        )
+      }
+      return NextResponse.json({ member })
+    } else {
+      return NextResponse.json(
+        { error: 'Invalid action' },
+        { status: 400 }
+      )
+    }
+  } catch (error) {
+    return errorResponse(error, 'PATCH /api/members')
   }
 }

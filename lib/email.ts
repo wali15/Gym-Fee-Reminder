@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { formatCurrency, type EmailConfig } from './settings'
+import nodemailer from 'nodemailer'
 
 export interface ReminderEmailData {
   name: string
@@ -99,16 +100,36 @@ export async function sendReminderEmail(
   `
 
   try {
-    const resend = new Resend(config.apiKey)
-    await resend.emails.send({
-      from: `${config.fromName} <${config.fromAddress}>`,
-      to: [data.email],
-      subject,
-      html,
-    })
+    // Use SMTP relay if configured, otherwise fallback to Resend
+    if (config.smtpHost && config.smtpPort && config.smtpUsername && config.smtpPassword) {
+      const transporter = nodemailer.createTransport({
+        host: config.smtpHost,
+        port: config.smtpPort,
+        secure: config.smtpSecure, // true for 465, false for other ports
+        auth: {
+          user: config.smtpUsername,
+          pass: config.smtpPassword,
+        },
+      })
+
+      await transporter.sendMail({
+        from: `${config.fromName} <${config.fromAddress}>`,
+        to: data.email,
+        subject,
+        html,
+      })
+    } else {
+      const resend = new Resend(config.apiKey)
+      await resend.emails.send({
+        from: `${config.fromName} <${config.fromAddress}>`,
+        to: [data.email],
+        subject,
+        html,
+      })
+    }
     return { success: true }
   } catch (error) {
-    console.error('Resend error:', error)
+    console.error('Email error:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Failed to send email' }
   }
 }
@@ -169,16 +190,36 @@ export async function sendPaymentConfirmationEmail(
   `
 
   try {
-    const resend = new Resend(config.apiKey)
-    await resend.emails.send({
-      from: `${config.fromName} <${config.fromAddress}>`,
-      to: [data.email],
-      subject: `✅ Payment Confirmed - ${formattedAmount}`,
-      html,
-    })
+    // Use SMTP relay if configured, otherwise fallback to Resend
+    if (config.smtpHost && config.smtpPort && config.smtpUsername && config.smtpPassword) {
+      const transporter = nodemailer.createTransport({
+        host: config.smtpHost,
+        port: config.smtpPort,
+        secure: config.smtpSecure, // true for 465, false for other ports
+        auth: {
+          user: config.smtpUsername,
+          pass: config.smtpPassword,
+        },
+      })
+
+      await transporter.sendMail({
+        from: `${config.fromName} <${config.fromAddress}>`,
+        to: data.email,
+        subject: `✅ Payment Confirmed - ${formattedAmount}`,
+        html,
+      })
+    } else {
+      const resend = new Resend(config.apiKey)
+      await resend.emails.send({
+        from: `${config.fromName} <${config.fromAddress}>`,
+        to: [data.email],
+        subject: `✅ Payment Confirmed - ${formattedAmount}`,
+        html,
+      })
+    }
     return { success: true }
   } catch (error) {
-    console.error('Resend error:', error)
+    console.error('Email error:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Failed to send email' }
   }
 }

@@ -6,12 +6,14 @@ export interface User {
   name: string
   email: string
   role: Role
+  google_id?: string | null
   created_at: string
   updated_at: string
 }
 
 export interface UserWithHash extends User {
   password_hash: string
+  google_id?: string | null
 }
 
 function mapUser(row: any): User {
@@ -20,6 +22,7 @@ function mapUser(row: any): User {
     name: row.name,
     email: row.email,
     role: row.role === 'admin' ? 'admin' : 'standard',
+    google_id: row.google_id ?? null,
     created_at: row.created_at,
     updated_at: row.updated_at,
   }
@@ -37,7 +40,12 @@ export async function getUserByEmail(email: string): Promise<UserWithHash | null
     args: [email],
   })
   const row = res.rows[0]
-  return row ? { ...mapUser(row), password_hash: row.password_hash } : null
+  if (!row) return null
+  return {
+    ...mapUser(row),
+    password_hash: row.password_hash,
+    google_id: row.google_id ?? null,
+  }
 }
 
 export async function getUserById(id: number): Promise<User | null> {
@@ -52,7 +60,12 @@ export async function getUserWithHashById(id: number): Promise<UserWithHash | nu
   const client = getClient()
   const res = await client.execute({ sql: 'SELECT * FROM users WHERE id = ?', args: [id] })
   const row = res.rows[0]
-  return row ? { ...mapUser(row), password_hash: row.password_hash } : null
+  if (!row) return null
+  return {
+    ...mapUser(row),
+    password_hash: row.password_hash,
+    google_id: row.google_id ?? null,
+  }
 }
 
 export async function listUsers(): Promise<User[]> {

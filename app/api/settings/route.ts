@@ -10,7 +10,7 @@ import {
   type SettingKey,
 } from '@/lib/settings'
 import { errorResponse } from '@/lib/api'
-import { isValidEmail, isValidPhoneNumber, isValidCurrency, isValidLanguageCode, isNonEmptyString } from '@/lib/validation'
+import { isValidEmail, isValidPhoneNumber, isValidCurrency, isValidLanguageCode, isNonEmptyString, isValidHour, isValidDaysBefore, isValidPort } from '@/lib/validation'
 import { logSettingsChange } from '@/lib/audit'
 
 // Auth/DB-backed: always run per-request (reads the session cookie).
@@ -22,12 +22,13 @@ function maskSecret(value: string): { set: boolean; last4: string } {
 
 /** Build the client-safe view: secrets blanked, with separate {set,last4} hints. */
 function toClientView(settings: Settings) {
-  const masked: Settings = { ...settings, resend_api_key: '', whatsapp_token: '' }
+  const masked: Settings = { ...settings, resend_api_key: '', smtp_password: '', sso_google_client_secret: '' }
   return {
     settings: masked,
     secrets: {
       resend_api_key: maskSecret(settings.resend_api_key),
-      whatsapp_token: maskSecret(settings.whatsapp_token),
+      smtp_password: maskSecret(settings.smtp_password),
+      sso_google_client_secret: maskSecret(settings.sso_google_client_secret),
     },
   }
 }
@@ -104,11 +105,43 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Validate SSO Google settings when enabled
+    if (body.sso_google_enabled !== undefined && body.sso_google_enabled !== null && body.sso_google_enabled !== '') {
+      const ssoEnabled = String(body.sso_google_enabled) === 'true';
+      if (ssoEnabled) {
+        if (body.sso_google_client_id === undefined || body.sso_google_client_id === null || String(body.sso_google_client_id) === '') {
+          return NextResponse.json({ error: 'sso_google_client_id is required when SSO is enabled' }, { status: 400 })
+        }
+        if (body.sso_google_client_secret === undefined || body.sso_google_client_secret === null || String(body.sso_google_client_secret) === '') {
+          return NextResponse.json({ error: 'sso_google_client_secret is required when SSO is enabled' }, { status: 400 })
+        }
+      }
+    }
+
+    // Validate External SMTP Relay settings when enabled
+    if (body.smtp_relay_enabled !== undefined && body.smtp_relay_enabled !== null && body.smtp_relay_enabled !== '') {
+      const smtpEnabled = String(body.smtp_relay_enabled) === 'true';
+      if (smtpEnabled) {
+        if (body.smtp_host === undefined || body.smtp_host === null || String(body.smtp_host) === '') {
+          return NextResponse.json({ error: 'smtp_host is required when SMTP relay is enabled' }, { status: 400 })
+        }
+        if (!isValidPort(Number(body.smtp_port))) {
+          return NextResponse.json({ error: 'smtp_port must be a valid port number (1-65535)' }, { status: 400 })
+        }
+        if (body.smtp_username === undefined || body.smtp_username === null || String(body.smtp_username) === '') {
+          return NextResponse.json({ error: 'smtp_username is required when SMTP relay is enabled' }, { status: 400 })
+        }
+        if (body.smtp_password === undefined || body.smtp_password === null || String(body.smtp_password) === '') {
+          return NextResponse.json({ error: 'smtp_password is required when SMTP relay is enabled' }, { status: 400 })
+        }
+      }
+    }
+
     // Only accept known keys. For secret keys, an omitted/blank value means
     // "keep the existing secret" — never overwrite with an empty string.
     const allowed = Object.keys(parseSettings([])) as SettingKey[]
     const patch: Partial<Settings> = {}
-    const changes: Record<string, { old: string | null; new: string | null }> = {}
+    const changes: Record<string, { old: string | number | boolean | null; new: string | number | boolean | null }> = {}
 
     // Get current settings for comparison
     const currentSettingsRows = await getSettingsRows()
@@ -117,20 +150,20 @@ export async function PUT(request: NextRequest) {
     for (const key of allowed) {
       if (!(key in body)) continue
       const value = body[key]
-      let newValue: string | null = null
+      let newValue: string | number | boolean | null = null
 
       if (SECRET_SETTING_KEYS.includes(key)) {
         if (value === undefined || value === null || String(value) === '') continue
         newValue = String(value)
         ;(patch as Record<string, unknown>)[key] = newValue
       } else {
-        newValue = value
+        newValue = value as string | number | boolean
         ;(patch as Record<string, unknown>)[key] = newValue
       }
 
       // Track changes for audit logging
       const oldValue = currentSettings[key] ?? null
-      changes[key] = { old: oldValue, new: newValue !== undefined && newValue !== null ? String(newValue) : null }
+      changes[key] = { old: oldValue, new: newValue !== undefined && newValue !== null ? newValue : null }
     }
 
     await upsertSettings(serializeSettings(patch))

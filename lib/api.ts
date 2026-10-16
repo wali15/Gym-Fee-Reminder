@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { AuthError } from './auth'
 import { DbNotConfiguredError } from './db'
 
